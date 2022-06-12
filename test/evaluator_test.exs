@@ -44,41 +44,55 @@ defmodule EvaluatorTest do
 
   describe "eval/1 with mul expression" do
     test "with basic number expression" do
-      [number_1, number_2] = list_of_random_numbers(2)
-
-      assert number_1 * number_2 ==
-               Evaluator.eval({:mul, {:number, number_1}, {:number, number_2}})
+      check all(int1 <- integer(), int2 <- integer(), mul = int1 * int2) do
+        assert Evaluator.eval({:mul, {:number, int1}, {:number, int2}}) == mul
+      end
     end
 
     test "with another expressions" do
-      [number_1, number_2, number_3, number_4] = list_of_random_numbers(4)
-
-      assert number_1 * number_2 * (number_3 + number_4) ==
-               Evaluator.eval(
-                 {:mul, {:mul, {:number, number_1}, {:number, number_2}},
-                  {:add, {:number, number_3}, {:number, number_4}}}
-               )
+      check all(
+              int_list <- list_of(integer(-1000..1000), length: 4),
+              [int1, int2, int3, int4] = int_list,
+              result = int1 * int2 * (int3 + int4)
+            ) do
+        assert Evaluator.eval(
+                 {:mul, {:mul, {:number, int1}, {:number, int2}},
+                  {:add, {:number, int3}, {:number, int4}}}
+               ) == result
+      end
     end
   end
 
   describe "eval/1 with div expression" do
-    test "with basic number expression" do
-      [number_1, number_2] = list_of_random_numbers(2)
+    test "with basic positive numbers expression" do
+      check all(int1 <- integer(0..10000), int2 <- integer(0..10000), div = int1 / int2) do
+        assert Evaluator.eval({:div, {:number, int1}, {:number, int2}}) == div
+      end
+    end
 
-      assert number_1 / number_2 ==
-               Evaluator.eval({:div, {:number, number_1}, {:number, number_2}})
+    test "with basic negative numbers expression" do
+      check all(int1 <- integer(-10000..0), int2 <- integer(-10000..0), div = int1 / int2) do
+        assert Evaluator.eval({:div, {:number, int1}, {:number, int2}}) == div
+      end
+    end
+
+    test "with basic positive and negative numbers expression" do
+      check all(int1 <- integer(-1000..1000), int2 <- integer(-1000..1000), div = int1 / int2) do
+        assert Evaluator.eval({:div, {:number, int1}, {:number, int2}}) == div
+      end
     end
 
     test "with another expressions" do
-      [number_1, number_2, number_3, number_4] = list_of_random_numbers(4)
-
-      # assert number_1 * number_2 / (number_3 - number_4) ==
-      Evaluator.eval(
-        {:div, {:mul, {:number, number_1}, {:number, number_2}},
-         {:sub, {:number, number_3}, {:number, number_4}}}
-      )
-
-      assert true
+      check all(
+              int_list <- list_of(integer(-1000..1000), length: 4),
+              [int1, int2, int3, int4] = int_list,
+              result = (int1 + int2) / (int3 * int4)
+            ) do
+        assert Evaluator.eval(
+                 {:div, {:add, {:number, int1}, {:number, int2}},
+                  {:mul, {:number, int3}, {:number, int4}}}
+               ) == result
+      end
     end
   end
 
