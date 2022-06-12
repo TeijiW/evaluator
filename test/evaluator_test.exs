@@ -107,6 +107,6 @@ defmodule EvaluatorTest do
     end
   end
 
-  defp random_number, do: Enum.random(-1000..1000)
+  defp random_number, do: Enum.random(-100..100)
   defp list_of_random_numbers(number), do: for(_ <- 1..number, do: random_number())
 end
