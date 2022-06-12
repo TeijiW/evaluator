@@ -1,5 +1,6 @@
 defmodule EvaluatorTest do
   use ExUnit.Case
+  use ExUnitProperties
   doctest Evaluator
   alias Evaluator
 
@@ -9,21 +10,35 @@ defmodule EvaluatorTest do
 
   describe "eval/1 with add expression" do
     test "with basic number expression" do
-      [number_1, number_2] = list_of_random_numbers(2)
-
-      assert number_1 + number_2 ==
-               Evaluator.eval({:add, {:number, number_1}, {:number, number_2}})
+      check all(int1 <- integer(), int2 <- integer(), sum = int1 + int2) do
+        assert Evaluator.eval({:add, {:number, int1}, {:number, int2}}) == sum
+      end
     end
 
-    test "with another expressions" do
-      [number_1, number_2, number_3, number_4] = list_of_random_numbers(4)
-      function = if number_4 < 0, do: &Kernel.+/2, else: &Kernel.-/2
+    test "with another expressions and only positive numbers" do
+      check all(
+              int_list <- list_of(integer(1..1000), length: 4),
+              [int1, int2, int3, int4] = int_list,
+              result = int1 + int2 + int3 - int4
+            ) do
+        assert Evaluator.eval(
+                 {:add, {:add, {:number, int1}, {:number, int2}},
+                  {:sub, {:number, int3}, {:number, int4}}}
+               ) == result
+      end
+    end
 
-      assert number_1 + number_2 + function.(number_3, number_4) ==
-               Evaluator.eval(
-                 {:add, {:add, {:number, number_1}, {:number, number_2}},
-                  {:sub, {:number, number_3}, {:number, number_4}}}
-               )
+    test "with another expressions and only negative numbers" do
+      check all(
+              int_list <- list_of(integer(-1000..-1), length: 4),
+              [int1, int2, int3, int4] = int_list,
+              result = int1 * int2 + (int3 + int4)
+            ) do
+        assert Evaluator.eval(
+                 {:add, {:mul, {:number, int1}, {:number, int2}},
+                  {:sub, {:number, int3}, {:number, int4}}}
+               ) == result
+      end
     end
   end
 
