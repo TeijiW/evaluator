@@ -97,23 +97,36 @@ defmodule EvaluatorTest do
   end
 
   describe "eval/1 with sub expression" do
-    test "with basic number expression" do
-      [number_1, number_2] = list_of_random_numbers(2)
-      function = if number_2 < 0, do: &Kernel.+/2, else: &Kernel.-/2
+    test "with basic positive integers number expression" do
+      check all(int1 <- integer(0..10000), int2 <- integer(0..10000), sub = int1 - int2) do
+        assert Evaluator.eval({:sub, {:number, int1}, {:number, int2}}) == sub
+      end
+    end
 
-      assert function.(number_1, number_2) ==
-               Evaluator.eval({:sub, {:number, number_1}, {:number, number_2}})
+    test "with second expression returning positive number" do
+      check all(int1 <- integer(1000..1000), int2 <- integer(1000..1000), sub = int1 - int2) do
+        assert Evaluator.eval({:sub, {:number, int1}, {:number, int2}}) == sub
+      end
+    end
+
+    test "with second expression returning negative number" do
+      check all(int1 <- integer(1000..1000), int2 <- integer(-10000..0), sub = int1 + int2) do
+        assert Evaluator.eval({:sub, {:number, int1}, {:number, int2}}) == sub
+      end
     end
 
     test "with another expressions" do
-      [number_1, number_2, number_3, number_4] = list_of_random_numbers(4)
-      function = if number_3 + number_4 < 0, do: &Kernel.+/2, else: &Kernel.-/2
-
-      assert function.(number_1 * number_2, number_3 + number_4) ==
-               Evaluator.eval(
-                 {:sub, {:mul, {:number, number_1}, {:number, number_2}},
-                  {:add, {:number, number_3}, {:number, number_4}}}
-               )
+      check all(
+              int_list <- list_of(integer(-1000..1000), length: 4),
+              [int1, int2, int3, int4] = int_list,
+              expected_operation = if(int3 + int4 < 0, do: &Kernel.+/2, else: &Kernel.-/2),
+              result = expected_operation.(int1 * int2, int3 + int4)
+            ) do
+        assert Evaluator.eval(
+                 {:sub, {:mul, {:number, int1}, {:number, int2}},
+                  {:add, {:number, int3}, {:number, int4}}}
+               ) == result
+      end
     end
   end
 
