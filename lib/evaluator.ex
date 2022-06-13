@@ -9,7 +9,6 @@ defmodule Evaluator do
 
   @spec eval(expr()) :: number()
   def eval({:number, number}), do: number
-  def eval({:div, _a_expr, 0}), do: raise("Invalid div operation")
 
   def eval({operation, a_expr, b_expr}),
     do: handle_operation_function(operation).(eval(a_expr), eval(b_expr))
