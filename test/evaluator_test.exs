@@ -5,7 +5,15 @@ defmodule EvaluatorTest do
   alias Evaluator
 
   test "eval/1 with number expression" do
-    assert 5 == Evaluator.eval({:number, 5})
+    check all(int1 <- integer()) do
+      assert int1 == Evaluator.eval({:number, int1})
+    end
+  end
+
+  test "eval/1 with invalid expression" do
+    assert_raise RuntimeError, "Invalid expression", fn ->
+      Evaluator.eval({:invalid, "invalid"})
+    end
   end
 
   describe "eval/1 with add expression" do
