@@ -17,7 +17,7 @@ defmodule EvaluatorTest do
   end
 
   describe "eval/1 with add expression" do
-    test "with basic number expression" do
+    test "with number expression" do
       check all(int1 <- integer(), int2 <- integer(), sum = int1 + int2) do
         assert Evaluator.eval({:add, {:number, int1}, {:number, int2}}) == sum
       end
@@ -51,7 +51,7 @@ defmodule EvaluatorTest do
   end
 
   describe "eval/1 with mul expression" do
-    test "with basic number expression" do
+    test "with number expression" do
       check all(int1 <- integer(), int2 <- integer(), mul = int1 * int2) do
         assert Evaluator.eval({:mul, {:number, int1}, {:number, int2}}) == mul
       end
@@ -72,29 +72,56 @@ defmodule EvaluatorTest do
   end
 
   describe "eval/1 with div expression" do
-    test "with basic positive numbers expression" do
-      check all(int1 <- integer(0..10000), int2 <- integer(0..10000), div = int1 / int2) do
-        assert Evaluator.eval({:div, {:number, int1}, {:number, int2}}) == div
-      end
-    end
-
-    test "with basic negative numbers expression" do
+    test "with positive integers number expression" do
       check all(
-              int1 <- integer(-100..-1),
-              int2 <- integer(-100..-1),
+              int1 <- integer(1..10000),
+              int2 <- integer(1..10000),
               div = int1 / int2,
-              max_runs: 500
+              max_runs: 300
             ) do
         assert Evaluator.eval({:div, {:number, int1}, {:number, int2}}) == div
       end
     end
 
-    test "with basic positive and negative numbers expression" do
+    test "with negative integers number expression" do
+      check all(
+              int1 <- integer(-100..-1),
+              int2 <- integer(-100..-1),
+              div = int1 / int2,
+              max_runs: 300
+            ) do
+        assert Evaluator.eval({:div, {:number, int1}, {:number, int2}}) == div
+      end
+    end
+
+    test "with positive floats number expression" do
+      check all(
+              float1 <- float(min: 1, max: 100.0),
+              float2 <- float(min: 1, max: 100.0),
+              div = float1 / float2,
+              max_runs: 300
+            ) do
+        assert Evaluator.eval({:div, {:number, float1}, {:number, float2}}) == div
+      end
+    end
+
+    test "with negative floats number expression" do
+      check all(
+              float1 <- float(min: -100, max: -1.0),
+              float2 <- float(min: -100, max: -1.0),
+              div = float1 / float2,
+              max_runs: 300
+            ) do
+        assert Evaluator.eval({:div, {:number, float1}, {:number, float2}}) == div
+      end
+    end
+
+    test "with positive and negative numbers expression" do
       check all(
               int1 <- not_zero_integer(-100..100),
               int2 <- not_zero_integer(-100..100),
               div = int1 / int2,
-              max_runs: 500
+              max_runs: 300
             ) do
         assert Evaluator.eval({:div, {:number, int1}, {:number, int2}}) == div
       end
@@ -105,7 +132,7 @@ defmodule EvaluatorTest do
               int_list <- list_of(not_zero_integer(-100..1000), length: 4),
               [int1, int2, int3, int4] = int_list,
               result = (int1 + int2) / (int3 * int4),
-              max_runs: 500
+              max_runs: 300
             ) do
         assert Evaluator.eval(
                  {:div, {:add, {:number, int1}, {:number, int2}},
@@ -116,7 +143,7 @@ defmodule EvaluatorTest do
   end
 
   describe "eval/1 with sub expression" do
-    test "with basic positive integers number expression" do
+    test "with positive integers number expression" do
       check all(int1 <- integer(0..10000), int2 <- integer(0..10000), sub = int1 - int2) do
         assert Evaluator.eval({:sub, {:number, int1}, {:number, int2}}) == sub
       end
@@ -150,12 +177,12 @@ defmodule EvaluatorTest do
   end
 
   describe "eval/1 with pow expression" do
-    test "with basic number expression" do
+    test "with number expression" do
       check all(
               int1 <- not_zero_integer(-100..100),
               int2 <- not_zero_integer(-100..100),
               pow = Evaluator.pow(int1, int2),
-              max_runs: 500
+              max_runs: 300
             ) do
         assert Evaluator.eval({:pow, {:number, int1}, {:number, int2}}) == pow
       end
