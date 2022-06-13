@@ -71,22 +71,33 @@ defmodule EvaluatorTest do
     end
 
     test "with basic negative numbers expression" do
-      check all(int1 <- integer(-10000..0), int2 <- integer(-10000..0), div = int1 / int2) do
+      check all(
+              int1 <- integer(-100..-1),
+              int2 <- integer(-100..-1),
+              div = int1 / int2,
+              max_runs: 500
+            ) do
         assert Evaluator.eval({:div, {:number, int1}, {:number, int2}}) == div
       end
     end
 
     test "with basic positive and negative numbers expression" do
-      check all(int1 <- integer(-1000..1000), int2 <- integer(-1000..1000), div = int1 / int2) do
+      check all(
+              int1 <- not_zero_integer(-100..100),
+              int2 <- not_zero_integer(-100..100),
+              div = int1 / int2,
+              max_runs: 500
+            ) do
         assert Evaluator.eval({:div, {:number, int1}, {:number, int2}}) == div
       end
     end
 
     test "with another expressions" do
       check all(
-              int_list <- list_of(integer(-1000..1000), length: 4),
+              int_list <- list_of(not_zero_integer(-100..1000), length: 4),
               [int1, int2, int3, int4] = int_list,
-              result = (int1 + int2) / (int3 * int4)
+              result = (int1 + int2) / (int3 * int4),
+              max_runs: 500
             ) do
         assert Evaluator.eval(
                  {:div, {:add, {:number, int1}, {:number, int2}},
@@ -132,23 +143,29 @@ defmodule EvaluatorTest do
 
   describe "eval/1 with pow expression" do
     test "with basic number expression" do
-      [number_1, number_2] = list_of_random_numbers(2)
-
-      assert Evaluator.pow(number_1, number_2) ==
-               Evaluator.eval({:pow, {:number, number_1}, {:number, number_2}})
+      check all(
+              int1 <- not_zero_integer(-100..100),
+              int2 <- not_zero_integer(-100..100),
+              pow = Evaluator.pow(int1, int2),
+              max_runs: 500
+            ) do
+        assert Evaluator.eval({:pow, {:number, int1}, {:number, int2}}) == pow
+      end
     end
 
     test "with another expressions" do
-      [number_1, number_2, number_3, number_4] = list_of_random_numbers(4)
-
-      assert Evaluator.pow(number_1 * number_2, number_3 + number_4) ==
-               Evaluator.eval(
-                 {:pow, {:mul, {:number, number_1}, {:number, number_2}},
-                  {:add, {:number, number_3}, {:number, number_4}}}
-               )
+      check all(
+              int_list <- list_of(not_zero_integer(-100..100), length: 4),
+              [int1, int2, int3, int4] = int_list,
+              result = Evaluator.pow(int1 * int2, int3 + int4)
+            ) do
+        assert Evaluator.eval(
+                 {:pow, {:mul, {:number, int1}, {:number, int2}},
+                  {:add, {:number, int3}, {:number, int4}}}
+               ) == result
+      end
     end
   end
 
-  defp random_number, do: Enum.random(-100..100)
-  defp list_of_random_numbers(number), do: for(_ <- 1..number, do: random_number())
+  defp not_zero_integer(range), do: StreamData.filter(StreamData.integer(range), &(&1 != 0))
 end

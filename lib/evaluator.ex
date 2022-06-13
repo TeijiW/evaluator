@@ -27,7 +27,7 @@ defmodule Evaluator do
   defp sub(a_number, b_number), do: a_number - b_number
 
   def pow(a_number, b_number)
-      when is_integer(a_number) and is_integer(b_number) and a_number >= 0 and b_number >= 0,
+      when is_integer(a_number) and is_integer(b_number) and b_number >= 0,
       do: Integer.pow(a_number, b_number)
 
   def pow(a_number, b_number) do
